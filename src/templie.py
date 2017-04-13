@@ -197,8 +197,8 @@ def validate(template, global_parameters, repeater_parameters):
         exit(1)
 
 
-def generate(input_file, output_file):
-    try:
+def generate(input_file_name, output_file_name):
+    with open(input_file_name, 'r') as input_file, open(output_file_name, 'w') as output_file:
         sections = get_section_lines(input_file)
         template_section, global_parameters_section, repeater_parameters_section = get_config(sections)
         template = get_template(sections, template_section)
@@ -210,8 +210,6 @@ def generate(input_file, output_file):
         for record in repeater_parameters:
             record.update(global_parameters.get_parameters())
             output_file.write(string_template.substitute(record))
-    except DslSyntaxError as e:
-        print(e.args[0])
 
 
 def main():
@@ -225,8 +223,12 @@ def main():
     parser.add_argument('-o', '--output', help='output file', required=True)
     args = parser.parse_args()
 
-    with open(args.input, 'r') as input_file, open(args.output, 'w') as output_file:
-        generate(input_file, output_file)
+    try:
+        generate(args.input, args.output)
+    except IOError as error:
+        print(error)
+    except DslSyntaxError as error:
+        print(error.args[0])
 
 if __name__ == '__main__':
 
