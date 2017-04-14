@@ -55,7 +55,7 @@ class Repeater:
         raise DslSyntaxError.get_error(line)
 
     def __parse_values(self, line):
-        pattern = self.__compound_regex(r'\s*(?:([^,;" ]+)|"([^"]+)")\s*')
+        pattern = self.__compound_regex(r'\s*(?:([^,;" ]+)|"([^"]*)")\s*')
         match = search(pattern, line)
         if match:
             return [
@@ -88,7 +88,7 @@ class Parameters:
 
     @staticmethod
     def __get_key_value_pair(line):
-        match = search(r'^\s*({})\s*=\s*(?:([^" ]+)|"([^"]+)")\s*$'.format(IDENTIFIER_REGEX), line)
+        match = search(r'^\s*({})\s*=\s*(?:([^" ]+)|"([^"]*)")\s*$'.format(IDENTIFIER_REGEX), line)
         if match:
             name, value, quoted_value = match.groups()
             return name, value if value else quoted_value

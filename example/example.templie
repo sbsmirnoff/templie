@@ -1,5 +1,6 @@
-This part of the script, which comes before the first section, is entirely
-ignored by Templie. You can use it for whatever purpose you wish.
+
+This part of the script (the part that comes before the first section) is
+entirely ignored by Templie. You can use it for whatever purpose you wish.
 
 The rest of the file is split into sections. Each section starts with the
 section's name inside square brackets (e.g. [Template]) and continues till
@@ -40,7 +41,7 @@ global_parameter_2 = SECOND_PARAMETER
 
 number   first_name                   last_name
 
-1        Leonhard                     Euler
+1        Leonhard                     "Euler (great and powerful)"
 2        "Johann Carl Friedrich"      Gauss
 3        "Jules Henri"                Poincaré
 4        Andrey                       Kolmogorov
