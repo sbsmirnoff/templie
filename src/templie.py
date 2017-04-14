@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+import os
+from shutil import copyfile
 from re import search
 from re import finditer
 from string import Template as StringTemplate
@@ -202,17 +204,25 @@ def validate(template, global_parameters, repeater_parameters):
 
 
 def generate(input_file_name, output_file_name):
-    with open(input_file_name, 'r') as input_file, open(output_file_name, 'w') as output_file:
+    with open(input_file_name, 'r') as input_file:
         sections = get_section_lines(input_file)
-        template_section, global_parameters_section, repeater_parameters_section = get_config(sections)
-        template = get_template(sections, template_section)
-        global_parameters = get_parameters(sections, global_parameters_section, Parameters)
-        repeater_parameters = get_parameters(sections, repeater_parameters_section, Repeater)
-        validate(template, global_parameters, repeater_parameters)
 
+    template_section, global_parameters_section, repeater_parameters_section = get_config(sections)
+    template = get_template(sections, template_section)
+    global_parameters = get_parameters(sections, global_parameters_section, Parameters)
+    repeater_parameters = get_parameters(sections, repeater_parameters_section, Repeater)
+    validate(template, global_parameters, repeater_parameters)
+
+    backup_output_file(output_file_name)
+    with open(output_file_name, 'w') as output_file:
         for record in repeater_parameters:
             record.update(global_parameters.get_parameters())
             output_file.write(template.generate(record))
+
+
+def backup_output_file(output_file_name):
+    if os.path.exists(output_file_name):
+        copyfile(output_file_name, output_file_name + '~')
 
 
 def __get_args_parser():
