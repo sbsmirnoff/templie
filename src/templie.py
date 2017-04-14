@@ -8,56 +8,11 @@ from argparse import ArgumentParser, HelpFormatter
 IDENTIFIER_REGEX = r'[_a-zA-Z][_a-zA-Z0-9]*'
 
 
-class DslSyntaxError(Exception):
-    @classmethod
-    def get_error(cls, line):
-        return cls('invalid line: {}'.format(line.strip('\n')))
-
-
-def get_section(line):
-    match = search(r'^\s*\[(.+)\]\s*$', line.strip())
-    return match.group(1) if match else ''
-
-
-def strip_comments(line):
-    match = search(r'^([^"#]*|(?:[^"#]*"[^"]*"[^"#]*)+)#.*$', line)
-    return match.group(1) if match else line
-
-
-def get_section_lines(iterator):
-    sections_lines = {}
-    section = ''
-    for line in iterator:
-        line = strip_comments(line)
-        new_section = get_section(line)
-        if new_section:
-            section = new_section
-        elif section:
-            lines = sections_lines.setdefault(section, [])
-            lines.append(line)
-    return sections_lines
-
-
-def clean_up_lines(lines):
-    stripped = (line.strip() for line in lines)
-    return (line for line in stripped if line)
-
-
-def grouped(iterable, n):
-    group = []
-    for i, line in enumerate(iterable):
-        group.append(line)
-        if (i+1) % n == 0:
-            yield group
-            group.clear()
-    if group:
-        yield group
-
-
 class Template:
 
     def __init__(self, content):
         self.content = content
+        self.__string_template = StringTemplate(content)
 
     def get_names(self):
         matches = [
@@ -65,6 +20,9 @@ class Template:
             for match in finditer(r'\$(?:(%s)|{(%s)})' % (IDENTIFIER_REGEX, IDENTIFIER_REGEX), self.content)
         ]
         return iter(matches)
+
+    def generate(self, parameters):
+        return self.__string_template.substitute(parameters)
 
 
 class Repeater:
@@ -133,6 +91,52 @@ class Parameters:
             name, value, quoted_value = match.groups()
             return name, value if value else quoted_value
         raise DslSyntaxError.get_error(line)
+
+
+class DslSyntaxError(Exception):
+    @classmethod
+    def get_error(cls, line):
+        return cls('invalid line: {}'.format(line.strip('\n')))
+
+
+def get_section(line):
+    match = search(r'^\s*\[(.+)\]\s*$', line.strip())
+    return match.group(1) if match else ''
+
+
+def strip_comments(line):
+    match = search(r'^([^"#]*|(?:[^"#]*"[^"]*"[^"#]*)+)#.*$', line)
+    return match.group(1) if match else line
+
+
+def get_section_lines(iterator):
+    sections_lines = {}
+    section = ''
+    for line in iterator:
+        line = strip_comments(line)
+        new_section = get_section(line)
+        if new_section:
+            section = new_section
+        elif section:
+            lines = sections_lines.setdefault(section, [])
+            lines.append(line)
+    return sections_lines
+
+
+def clean_up_lines(lines):
+    stripped = (line.strip() for line in lines)
+    return (line for line in stripped if line)
+
+
+def grouped(iterable, n):
+    group = []
+    for i, line in enumerate(iterable):
+        group.append(line)
+        if (i+1) % n == 0:
+            yield group
+            group.clear()
+    if group:
+        yield group
 
 
 def get_config_parameter(config, name):
@@ -206,23 +210,24 @@ def generate(input_file_name, output_file_name):
         repeater_parameters = get_parameters(sections, repeater_parameters_section, Repeater)
         validate(template, global_parameters, repeater_parameters)
 
-        string_template = StringTemplate(template.content)
         for record in repeater_parameters:
             record.update(global_parameters.get_parameters())
-            output_file.write(string_template.substitute(record))
+            output_file.write(template.generate(record))
 
 
-def main():
-
+def __get_args_parser():
     parser = ArgumentParser(
         description='This templating DSL is called templie...',
         formatter_class=lambda prog: HelpFormatter(prog, max_help_position=40)
     )
-
     parser.add_argument('-i', '--input', help='input file', required=True)
     parser.add_argument('-o', '--output', help='output file', required=True)
-    args = parser.parse_args()
 
+    return parser
+
+
+def __main():
+    args = __get_args_parser().parse_args()
     try:
         generate(args.input, args.output)
     except IOError as error:
@@ -232,4 +237,4 @@ def main():
 
 if __name__ == '__main__':
 
-    main()
+    __main()
