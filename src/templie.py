@@ -102,7 +102,8 @@ class DslSyntaxError(Exception):
 
 
 def get_section(line):
-    match = search(r'^\s*\[(.+)\]\s*$', line.strip())
+    line_without_comment = strip_comments(line)
+    match = search(r'^\s*\[(.+)\]\s*$', line_without_comment.strip())
     return match.group(1) if match else ''
 
 
@@ -115,7 +116,6 @@ def get_section_lines(iterator):
     sections_lines = {}
     section = ''
     for line in iterator:
-        line = strip_comments(line)
         new_section = get_section(line)
         if new_section:
             section = new_section
@@ -126,7 +126,8 @@ def get_section_lines(iterator):
 
 
 def clean_up_lines(lines):
-    stripped = (line.strip() for line in lines)
+    lines_without_comments = (strip_comments(line) for line in lines)
+    stripped = (line.strip() for line in lines_without_comments)
     return (line for line in stripped if line)
 
 
@@ -153,7 +154,7 @@ def get_config(sections):
     config_section = sections.get('CONFIG')
 
     if config_section:
-        config = Parameters(clean_up_lines(config_section))
+        config = Parameters(config_section)
         template = get_config_parameter(config, 'template')
         global_parameters = get_config_parameter(config, 'global_parameters')
         repeater_parameters = get_config_parameter(config, 'repeater_parameters')
