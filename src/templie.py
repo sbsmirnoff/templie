@@ -241,7 +241,7 @@ def __main():
     args = __get_args_parser().parse_args()
     try:
         generate(args.input, args.output)
-    except IOError as error:
+    except (IOError, ValueError) as error:
         print(error)
     except DslSyntaxError as error:
         print(error.args[0])

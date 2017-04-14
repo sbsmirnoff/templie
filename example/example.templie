@@ -10,6 +10,14 @@ Sections can appear in any order and can have any name. However, one section
 called CONFIG is required. It contains the information about which sections
 are to be used by the interpreter.
 
+There are 3 types of sections: template sections, global parameter sections
+and repeater parameter section.
+
+1. A global parameter section contains
+
+The template section contains the text of a
+template
+
 '#' character is used for comments: all characters between '#' and the end of
 the line are ignored by the interpreter. However, in the template sections
 comments are disabled: '#' character ca be a part of a template text.
