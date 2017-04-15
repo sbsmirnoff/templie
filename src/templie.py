@@ -45,7 +45,6 @@ class RepeaterParameters:
     def __init__(self, lines, flat):
         cleaned_lines = list(clean_up_lines(lines))
         self.__number_of_columns = len(split(r'\s*,\s*|\s*;\s*|\s+', cleaned_lines[0]))
-        self.__lines = cleaned_lines[1:]
         self.__lines = self.__get_lines(cleaned_lines[1:], flat)
         self.__names = self.__parse_names(cleaned_lines[0])
 
