@@ -3,11 +3,17 @@
 import os
 from shutil import copyfile
 from re import search
+from re import split
 from re import finditer
 from string import Template as StringTemplate
 from argparse import ArgumentParser, HelpFormatter
 
 IDENTIFIER_REGEX = r'[_a-zA-Z][_a-zA-Z0-9]*'
+CONFIG_SECTION = 'CONFIG'
+TEMPLATE_SECTION_PARAMETER = 'template'
+GLOBAL_PARAMETERS_SECTION_PARAMETER = 'global_parameters'
+REPEATER_PARAMETERS_SECTION_PARAMETER = 'repeater_parameters'
+FLAT_REPEATER_PARAMETER = 'flat_repeater'
 
 
 class Template:
@@ -36,10 +42,11 @@ class Template:
 
 class RepeaterParameters:
 
-    def __init__(self, lines):
+    def __init__(self, lines, flat):
         cleaned_lines = list(clean_up_lines(lines))
-        self.__number_of_columns = len(cleaned_lines[0].split())
+        self.__number_of_columns = len(split(r'\s*,\s*|\s*;\s*|\s+', cleaned_lines[0]))
         self.__lines = cleaned_lines[1:]
+        self.__lines = self.__get_lines(cleaned_lines[1:], flat)
         self.__names = self.__parse_names(cleaned_lines[0])
 
     def __iter__(self):
@@ -48,6 +55,20 @@ class RepeaterParameters:
 
     def get_names(self):
         return self.__names
+
+    def __get_lines(self, lines, flat):
+        if flat:
+            quoted = (self.__quote(line) for line in lines)
+            return [','.join(group) for group in grouped(quoted, self.__number_of_columns)]
+        else:
+            return lines
+
+    @staticmethod
+    def __quote(line):
+        if bool(search(r'^".*"$', line)):
+            return line
+        else:
+            return '"{}"'.format(line)
 
     def __compound_regex(self, unit_regex):
         parts = [unit_regex] * self.__number_of_columns
@@ -142,23 +163,34 @@ def get_config_parameter(config, name):
     parameter = config.get(name)
     if parameter:
         return parameter
-    print('Missing {} parameter in [CONFIG] section'.format(name))
+    print('Missing {} parameter in [{}] section'.format(name, CONFIG_SECTION))
     exit(1)
 
 
 def get_config(sections):
-    config_section = sections.get('CONFIG')
+    config_section = sections.get(CONFIG_SECTION)
 
     if config_section:
         config = parameters(config_section)
-        template = get_config_parameter(config, 'template')
-        global_parameters = get_config_parameter(config, 'global_parameters')
-        repeater_parameters = get_config_parameter(config, 'repeater_parameters')
+        template = get_config_parameter(config, TEMPLATE_SECTION_PARAMETER)
+        global_parameters = get_config_parameter(config, GLOBAL_PARAMETERS_SECTION_PARAMETER)
+        repeater_parameters = get_config_parameter(config, REPEATER_PARAMETERS_SECTION_PARAMETER)
+        is_flat_repeater = get_whether_flat_repeater(config)
 
-        return template, global_parameters, repeater_parameters
+        return template, global_parameters, repeater_parameters, is_flat_repeater
 
-    print('Input file does not contain [CONFIG] section')
+    print('Input file does not contain [{}] section'.format(CONFIG_SECTION))
     exit(1)
+
+
+def get_whether_flat_repeater(config):
+    flat = config.get(FLAT_REPEATER_PARAMETER, 'false')
+    if flat == 'false':
+        return False
+    elif flat == 'true':
+        return True
+    else:
+        raise DslSyntaxError.get_error('{} parameter must be either "true" or "false"'.format(FLAT_REPEATER_PARAMETER))
 
 
 def get_template(sections, template_section):
@@ -169,11 +201,19 @@ def get_template(sections, template_section):
     exit(1)
 
 
-def get_parameters(sections, parameters_section, constructor):
-    lines = sections.get(parameters_section)
+def get_global_parameters(sections, global_parameters_section):
+    lines = sections.get(global_parameters_section)
     if lines:
-        return constructor(lines)
-    print('Missing [{}] section'.format(parameters_section))
+        return parameters(lines)
+    print('Missing global parameters section: [{}]'.format(global_parameters_section))
+    exit(1)
+
+
+def get_repeater_parameters(sections, repeater_parameters_section, flat):
+    lines = sections.get(repeater_parameters_section)
+    if lines:
+        return RepeaterParameters(lines, flat)
+    print('Missing repeater parameters section: [{}]'.format(repeater_parameters_section))
     exit(1)
 
 
@@ -204,10 +244,10 @@ def generate(input_file_name, output_file_name):
     with open(input_file_name, 'r') as input_file:
         sections = get_section_lines(input_file)
 
-    template_section, global_parameters_section, repeater_parameters_section = get_config(sections)
+    template_section, global_parameters_section, repeater_parameters_section, is_flat_repeater = get_config(sections)
     template = get_template(sections, template_section)
-    global_parameters = get_parameters(sections, global_parameters_section, parameters)
-    repeater_parameters = get_parameters(sections, repeater_parameters_section, RepeaterParameters)
+    global_parameters = get_global_parameters(sections, global_parameters_section)
+    repeater_parameters = get_repeater_parameters(sections, repeater_parameters_section, is_flat_repeater)
     validate_parameters(template, global_parameters, repeater_parameters)
     template.validate()
 
@@ -238,7 +278,7 @@ def __main():
     args = __get_args_parser().parse_args()
     try:
         generate(args.input, args.output)
-    except (IOError, ValueError) as error:
+    except IOError as error:
         print(error)
     except DslSyntaxError as error:
         print(error.args[0])

@@ -27,6 +27,7 @@ comments are disabled: '#' character can be a part of a template text.
 template = Template
 global_parameters = PARAMETERS
 repeater_parameters = REPEATER
+flat_repeater = false
 
 [Template]
 This is a global parameter: ${global_parameter_1}
@@ -51,3 +52,23 @@ number   first_name                   last_name
 3        "Jules Henri"                Poincaré
 4        Andrey                       Kolmogorov
 5        Alan                         Turing
+
+[REPEATER_FLAT]
+
+number,first_name,last_name
+
+1
+Leonhard
+Euler (great and powerful)
+2
+"Johann Carl Friedrich"
+Gauss
+3
+Jules Henri
+Poincaré
+4
+Andrey
+Kolmogorov
+5
+Alan
+Turing
