@@ -12,22 +12,29 @@ IDENTIFIER_REGEX = r'[_a-zA-Z][_a-zA-Z0-9]*'
 
 class Template:
 
-    def __init__(self, content):
-        self.content = content
+    def __init__(self, content, name):
+        self.__content = content
+        self.__name = name
         self.__string_template = StringTemplate(content)
 
     def get_names(self):
         matches = [
             match.group(1) if match.group(1) else match.group(2)
-            for match in finditer(r'\$(?:(%s)|{(%s)})' % (IDENTIFIER_REGEX, IDENTIFIER_REGEX), self.content)
+            for match in finditer(r'\$(?:(%s)|{(%s)})' % (IDENTIFIER_REGEX, IDENTIFIER_REGEX), self.__content)
         ]
         return iter(matches)
 
-    def generate(self, parameters):
-        return self.__string_template.substitute(parameters)
+    def generate(self, params):
+        return self.__string_template.substitute(params)
+
+    def validate(self):
+        match = search(r'\$\s', self.__content)
+        if match:
+            msg = "{} contains a standalone delimiter '$'. Use '$$' if you want a dollar sign in your template"
+            raise DslSyntaxError(msg.format(self.__name))
 
 
-class Repeater:
+class RepeaterParameters:
 
     def __init__(self, lines):
         cleaned_lines = list(clean_up_lines(lines))
@@ -71,34 +78,23 @@ class Repeater:
         }
 
 
-class Parameters:
-
-    def __init__(self, lines):
-        pairs = (self.__get_key_value_pair(line) for line in clean_up_lines(lines))
-        self.__map = {name: value for name, value in pairs}
-
-    def get_parameter(self, name):
-        return self.__map.get(name)
-
-    def get_names(self):
-        return self.__map.keys()
-
-    def get_parameters(self):
-        return self.__map
-
-    @staticmethod
-    def __get_key_value_pair(line):
-        match = search(r'^\s*({})\s*=\s*(?:([^" ]+)|"([^"]*)")\s*$'.format(IDENTIFIER_REGEX), line)
-        if match:
-            name, value, quoted_value = match.groups()
-            return name, value if value else quoted_value
-        raise DslSyntaxError.get_error(line)
-
-
 class DslSyntaxError(Exception):
     @classmethod
     def get_error(cls, line):
         return cls('invalid line: {}'.format(line.strip('\n')))
+
+
+def get_key_value_pair(line):
+    match = search(r'^\s*({})\s*=\s*(?:([^" ]+)|"([^"]*)")\s*$'.format(IDENTIFIER_REGEX), line)
+    if match:
+        name, value, quoted_value = match.groups()
+        return name, value if value else quoted_value
+    raise DslSyntaxError.get_error(line)
+
+
+def parameters(lines):
+    pairs = (get_key_value_pair(line) for line in clean_up_lines(lines))
+    return {name: value for name, value in pairs}
 
 
 def get_section(line):
@@ -143,7 +139,7 @@ def grouped(iterable, n):
 
 
 def get_config_parameter(config, name):
-    parameter = config.get_parameter(name)
+    parameter = config.get(name)
     if parameter:
         return parameter
     print('Missing {} parameter in [CONFIG] section'.format(name))
@@ -154,7 +150,7 @@ def get_config(sections):
     config_section = sections.get('CONFIG')
 
     if config_section:
-        config = Parameters(config_section)
+        config = parameters(config_section)
         template = get_config_parameter(config, 'template')
         global_parameters = get_config_parameter(config, 'global_parameters')
         repeater_parameters = get_config_parameter(config, 'repeater_parameters')
@@ -168,16 +164,16 @@ def get_config(sections):
 def get_template(sections, template_section):
     lines = sections.get(template_section)
     if lines:
-        return Template(''.join(lines))
+        return Template(''.join(lines), template_section)
     print('Missing template sections: [{}]'.format(template_section))
     exit(1)
 
 
-def get_parameters(sections, global_parameters_section, constructor):
-    lines = sections.get(global_parameters_section)
+def get_parameters(sections, parameters_section, constructor):
+    lines = sections.get(parameters_section)
     if lines:
         return constructor(lines)
-    print('Missing [{}] section'.format(global_parameters_section))
+    print('Missing [{}] section'.format(parameters_section))
     exit(1)
 
 
@@ -185,12 +181,12 @@ def has_duplicates(iterable):
     return len(set(iterable)) != len(list(iterable))
 
 
-def validate(template, global_parameters, repeater_parameters):
+def validate_parameters(template, global_parameters, repeater_parameters):
     if has_duplicates(repeater_parameters.get_names()):
         print('Name conflicts in repeater parameter section')
         exit(1)
 
-    global_parameters_names = set(global_parameters.get_names())
+    global_parameters_names = set(global_parameters.keys())
     repeater_parameters_names = set(repeater_parameters.get_names())
 
     if global_parameters_names & repeater_parameters_names:
@@ -210,14 +206,15 @@ def generate(input_file_name, output_file_name):
 
     template_section, global_parameters_section, repeater_parameters_section = get_config(sections)
     template = get_template(sections, template_section)
-    global_parameters = get_parameters(sections, global_parameters_section, Parameters)
-    repeater_parameters = get_parameters(sections, repeater_parameters_section, Repeater)
-    validate(template, global_parameters, repeater_parameters)
+    global_parameters = get_parameters(sections, global_parameters_section, parameters)
+    repeater_parameters = get_parameters(sections, repeater_parameters_section, RepeaterParameters)
+    validate_parameters(template, global_parameters, repeater_parameters)
+    template.validate()
 
     backup_output_file(output_file_name)
     with open(output_file_name, 'w') as output_file:
         for record in repeater_parameters:
-            record.update(global_parameters.get_parameters())
+            record.update(global_parameters)
             output_file.write(template.generate(record))
 
 

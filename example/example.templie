@@ -20,7 +20,7 @@ template
 
 '#' character is used for comments: all characters between '#' and the end of
 the line are ignored by the interpreter. However, in the template sections
-comments are disabled: '#' character ca be a part of a template text.
+comments are disabled: '#' character can be a part of a template text.
 
 [CONFIG]
 

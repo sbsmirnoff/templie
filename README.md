@@ -10,20 +10,20 @@ Sandra;      Dee
 ...
 ```
 
-You need to make an SQL script to send to the DBA who will run it and register all these employees
+You have to make an SQL script to send to the DBA who will run it and register all these employees
 in the HR database.
 
 ```
 INSERT INTO EMPLOYEE (ID, FIRST_NAME, LAST_NAME, DEPARTMENT_ID)
-VALUES (SEQ_EMPLOYEE.nextval, 'Victor', 'Lee', (select ID from DEPARTMENT where NAME = 'Sales'));
+VALUES (SEQ_EMPLOYEE.nextval, 'Victor', 'Lee', (SELECT ID FROM DEPARTMENT WHERE NAME = 'Sales'));
 
-INSERT INTO EMPLOYEE (ID, FIRST_NAME, LAST_NAME, DEPARTMENT)
-VALUES (SEQ_EMPLOYEE.nextval, 'Sandra', 'Dee', (select ID from DEPARTMENT where NAME = 'Sales'));
+INSERT INTO EMPLOYEE (ID, FIRST_NAME, LAST_NAME, DEPARTMENT_ID)
+VALUES (SEQ_EMPLOYEE.nextval, 'Sandra', 'Dee', (SELECT ID FROM DEPARTMENT WHERE NAME = 'Sales'));
 
 ...
 ```
 
-This is the sort of task that Templie will help you automate.
+This is the sort of task that Templie helps automate.
 
 ## Getting started
 
