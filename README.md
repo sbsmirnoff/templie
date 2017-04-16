@@ -33,7 +33,7 @@ Run Templie as follows
 python3 templie.py -i <input file> -o <output file>
 ```
 
-or (if templie.py is an executable)
+or (if `templie.py` is an executable)
 
 ```
 ./templie.py -i <input file> -o <output file>
