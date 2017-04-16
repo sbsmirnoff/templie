@@ -43,7 +43,7 @@ class RepeaterParameters:
         cleaned_lines = list(clean_up_lines(lines))
         header, body = cleaned_lines[0], cleaned_lines[1:]
         self.__number_of_columns = len(split(r'\s*,\s*|\s*;\s*|\s+', header))
-        self.__lines = lines_to_csv(body) if flat else body
+        self.__lines = lines_to_csv(body, self.__number_of_columns) if flat else body
         self.__names = self.__parse_names(header)
 
     def __iter__(self):

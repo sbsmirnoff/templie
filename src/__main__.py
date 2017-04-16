@@ -2,7 +2,6 @@
 Templie's main function
 """
 
-
 from argparse import ArgumentParser, HelpFormatter
 
 from templie import generate, TemplieException
