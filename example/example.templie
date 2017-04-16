@@ -1,4 +1,6 @@
-This is an example of Templie's input file .
+# ----------------------------------------------------------------------------------
+
+Example of an input file:
 
 This part of the script (the part that comes before the first section) is
 entirely ignored by Templie. You can use it for whatever purpose you wish.
@@ -7,9 +9,9 @@ The rest of the file is split into sections. Each section starts with the
 section's name inside square brackets (e.g. [Template]) and continues till
 the end of the file or the start of the next section, whichever comes first.
 
-Sections can appear in any order and can have any name. However, one section
-called CONFIG is required. It contains the information about which sections
-are to be used by the interpreter (see the example below):
+Sections can appear in any order and have any names. However, one specific
+section called CONFIG is required. It contains the information about which
+sections are to be used by the interpreter (see the example below):
 
 1. 'template' is the name of a template section to be used.
 2. 'global_parameters' is the name of a section containing global parameters
