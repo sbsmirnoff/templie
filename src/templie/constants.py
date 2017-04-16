@@ -1,0 +1,10 @@
+"""
+Templie constants
+"""
+
+IDENTIFIER_REGEX = r'[_a-zA-Z][_a-zA-Z0-9]*'
+CONFIG_SECTION = 'CONFIG'
+TEMPLATE_SECTION_PARAMETER = 'template'
+GLOBAL_PARAMETERS_SECTION_PARAMETER = 'global_parameters'
+REPEATER_PARAMETERS_SECTION_PARAMETER = 'repeater_parameters'
+FLAT_REPEATER_PARAMETER = 'flat_repeater'
