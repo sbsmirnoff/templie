@@ -30,7 +30,7 @@ This is the sort of task that Templie helps automate.
 Run Templie as follows
 
 ```
-python templie.py -i <input file> -o <output file>
+python3 templie.py -i <input file> -o <output file>
 ```
 
 or (if templie.py is an executable)
