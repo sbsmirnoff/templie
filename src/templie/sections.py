@@ -8,7 +8,7 @@ from re import finditer
 from string import Template as StringTemplate
 
 from .utils import grouped, clean_up_lines, lines_to_csv
-from .exceptions import DslSyntaxError
+from .exceptions import DslSyntaxError, ValidationError
 
 IDENTIFIER_REGEX = r'[_a-zA-Z][_a-zA-Z0-9]*'
 
@@ -34,7 +34,7 @@ class Template:
         match = search(r'\$\s', self.__content)
         if match:
             msg = "{} contains a standalone delimiter '$'. Use '$$' if you want a dollar sign in your template"
-            raise DslSyntaxError.get_error(msg.format(self.__name))
+            raise ValidationError.get_error(msg.format(self.__name))
 
 
 class RepeaterParameters:
