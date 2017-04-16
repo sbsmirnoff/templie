@@ -1,5 +1,3 @@
-# ----------------------------------------------------------------------------------
-
 Example of an input file:
 
 This part of the script (the part that comes before the first section) is
@@ -16,7 +14,7 @@ sections are to be used by the interpreter (see the example below):
 1. 'template' is the name of a template section to be used.
 2. 'global_parameters' is the name of a section containing global parameters
 3. 'repeater_parameters' is the name of a CSV structured repeater parameter
-   section (comma, semicolon and whitespace can be used as delimeters).
+   section (comma, semicolon and whitespace can be used as delimiters).
    Each line in this section except the first one will produce a new copy
    of a text generated from the template. The first line of this section
    is a list of parameter names.
@@ -25,33 +23,36 @@ sections are to be used by the interpreter (see the example below):
 the line are ignored by the interpreter. However, in the template sections
 comments are disabled, this way '#' character could be included in the template text.
 
-# ----------------------------------------------------------------------------------
+----------------------------------------------------------------------------------
 
 Here is the actual input data:
 
-[CONFIG]
+[CONFIG]                                               # Manadatory CONFIG section
 
-template = Template
-global_parameters = PARAMETERS
-repeater_parameters = REPEATER
+template = Template_A                                  # The name of a template section to be used
+global_parameters = PARAMETERS                         # The name of a global parameter section to be used
+repeater_parameters = REPEATER                         # The name of a CSV parameter section to be used
 
-[Template]
+[Template]                                             # This is a template section.
 This is a global parameter: ${global_parameter_1}
 This is another global parameter: $global_parameter_2, but this one is a repeater: ${number}.
 First name: $first_name, last name: ${last_name}
 Comments do not work in the template section: #####
 
-[Template_A]
-The name is $first_name $last_name
+[Template_A]                                           # This is another template section
+INSERT INTO EMPLOYEE (ID, FIRST_NAME, LAST_NAME, DEPARTMENT_ID)
+VALUES (SEQ_EMPLOYEE.nextval, '$first_name', '${last_name}', (SELECT ID FROM DEPARTMENT WHERE NAME = '$department'));
 
-[PARAMETERS]
+[PARAMETERS]                                           # A global parameter section
 
-global_parameter_1 = "first parameter"
+global_parameter_1 = "first parameter"                 # If the parameter's value contains whitespace, surround it by double quotes
 global_parameter_2 = SECOND_PARAMETER
 
-[REPEATER]
+department = Sales
 
-number   first_name                   last_name
+[REPEATER]                                             # A repeater (CSV) parameter section
+
+number   first_name                   last_name        # List of parameter names
 
 1        Leonhard                     "Euler (great and powerful)"
 2        "Johann Carl Friedrich"      Gauss
