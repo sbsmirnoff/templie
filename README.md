@@ -27,16 +27,16 @@ This is the sort of task that Templie helps automate.
 
 ## Getting started
 
-Run Templie as follows
+Go to the project's root directory and build an executable by running
 
 ```
-python3 templie.py -i <input file> -o <output file>
+./build.sh
 ```
 
-or (if `templie.py` is executable)
+The executable file is now in `out/` folder. Running Templie is as simple as
 
 ```
-./templie.py -i <input file> -o <output file>
+./templie -i <input file> -o <output file>
 ```
 
 Check out an example templie script `example/example.templie`.
