@@ -27,4 +27,16 @@ This is the sort of task that Templie helps automate.
 
 ## Getting started
 
+Run Templie as follows
+
+```
+python templie.py -i <input file> -o <output file>
+```
+
+or (if templie.py is an executable)
+
+```
+./templie.py -i <input file> -o <output file>
+```
+
 Check out an example templie script `example/example.templie`.

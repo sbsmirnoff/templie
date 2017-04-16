@@ -1,3 +1,4 @@
+This is an example of Templie's input file .
 
 This part of the script (the part that comes before the first section) is
 entirely ignored by Templie. You can use it for whatever purpose you wish.
@@ -8,26 +9,28 @@ the end of the file or the start of the next section, whichever comes first.
 
 Sections can appear in any order and can have any name. However, one section
 called CONFIG is required. It contains the information about which sections
-are to be used by the interpreter.
+are to be used by the interpreter (see the example below):
 
-There are 3 types of sections: template sections, global parameter sections
-and repeater parameter section.
-
-1. A global parameter section contains
-
-The template section contains the text of a
-template
+1. 'template' is the name of a template section to be used.
+2. 'global_parameters' is the name of a section containing global parameters
+3. 'repeater_parameters' is the name of a CSV structured repeater parameter
+   section. Each line in this section except the first one will produce
+   a new copy of a text generated from the template. The first line of
+   this section is a list of parameter names.
 
 '#' character is used for comments: all characters between '#' and the end of
 the line are ignored by the interpreter. However, in the template sections
-comments are disabled: '#' character can be a part of a template text.
+comments are disabled, this way '#' character could be included in the template text.
+
+# ----------------------------------------------------------------------------------
+
+Here is the actual input data:
 
 [CONFIG]
 
 template = Template
 global_parameters = PARAMETERS
 repeater_parameters = REPEATER
-flat_repeater = false
 
 [Template]
 This is a global parameter: ${global_parameter_1}
@@ -52,23 +55,3 @@ number   first_name                   last_name
 3        "Jules Henri"                Poincaré
 4        Andrey                       Kolmogorov
 5        Alan                         Turing
-
-[REPEATER_FLAT]
-
-number,first_name,last_name
-
-1
-Leonhard
-Euler (great and powerful)
-2
-"Johann Carl Friedrich"
-Gauss
-3
-Jules Henri
-Poincaré
-4
-Andrey
-Kolmogorov
-5
-Alan
-Turing
