@@ -1,7 +1,7 @@
 # Templie
 
 Templie is a lightweight DSL for creating multiple copies of a text generated from a parametrized template.
-Suppose you are given a CSV file with the names of new employees in the sales department.
+Suppose you are given a CSV file with the names of new employees in your company's sales department.
 
 ```
 first_name;  last_name
