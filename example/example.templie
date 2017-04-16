@@ -16,9 +16,10 @@ sections are to be used by the interpreter (see the example below):
 1. 'template' is the name of a template section to be used.
 2. 'global_parameters' is the name of a section containing global parameters
 3. 'repeater_parameters' is the name of a CSV structured repeater parameter
-   section. Each line in this section except the first one will produce
-   a new copy of a text generated from the template. The first line of
-   this section is a list of parameter names.
+   section (comma, semicolon and whitespace can be used as delimeters).
+   Each line in this section except the first one will produce a new copy
+   of a text generated from the template. The first line of this section
+   is a list of parameter names.
 
 '#' character is used for comments: all characters between '#' and the end of
 the line are ignored by the interpreter. However, in the template sections
