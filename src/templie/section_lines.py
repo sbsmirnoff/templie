@@ -13,7 +13,7 @@ def __get_section(line):
     return match.group(1) if match else ''
 
 
-def get_section_lines(iterator):
+def split_into_sections(iterator):
     sections_lines = {}
     section = ''
     for line in iterator:

@@ -16,6 +16,10 @@ def grouped(iterable, n):
         yield group
 
 
+def has_duplicates(iterable):
+    return len(set(iterable)) != len(list(iterable))
+
+
 def clean_up_lines(lines):
     stripped = (strip_comments(line).strip() for line in lines)
     return (line for line in stripped if line)

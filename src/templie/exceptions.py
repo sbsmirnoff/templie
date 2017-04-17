@@ -22,7 +22,7 @@ class MissingSection(TemplieException):
 class MissingParameter(TemplieException):
     @classmethod
     def get_error(cls, name, section):
-        return cls('Missing {} parameter in section [{}]'.format(name, section))
+        return cls('Missing {} in section [{}]'.format(name, section))
 
 
 class WrongValue(TemplieException):
