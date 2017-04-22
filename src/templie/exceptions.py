@@ -35,3 +35,7 @@ class ValidationError(TemplieException):
     @classmethod
     def get_error(cls, message):
         return cls(message)
+
+
+class ParseException(Exception):
+    pass
