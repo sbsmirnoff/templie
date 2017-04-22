@@ -7,7 +7,7 @@ from re import search
 from re import split
 from string import Template as StringTemplate
 
-from .exceptions import DslSyntaxError, ValidationError, MissingSection, WrongValue
+from .exceptions import DslSyntaxError, ValidationError, MissingSection, WrongValue, MissingParameter
 from .utils import grouped, clean_up_lines, lines_to_csv, has_duplicates, remove_backslashes
 
 IDENTIFIER_REGEX = r'[_a-zA-Z][_a-zA-Z0-9]*'
@@ -101,12 +101,13 @@ def __get_key_value_pair(line):
 
 class Sections:
 
-    def __init__(self, section_lines, config_parameters):
+    def __init__(self, section_lines):
+        self.__section_lines = section_lines
+        config_parameters = self.get_config_parameters()
         self.__template_name = config_parameters[TEMPLATE]
         self.__global_parameters_name = config_parameters[GLOBAL_PARAMETERS]
         self.__repeater_parameters_name = config_parameters[REPEATER_PARAMETERS]
         self.__flat = self.__is_flat_repeater(config_parameters)
-        self.__section_lines = section_lines
         self.__set_sections()
 
     def __set_sections(self):
@@ -160,3 +161,18 @@ class Sections:
             raise ValidationError.get_error(
                 'Undefined variables in the template: {}'.format(', '.join(undefined_template_variables))
             )
+
+    def get_config_parameters(self):
+        config_section = self.__section_lines.get(CONFIG_SECTION)
+        if config_section:
+            config = parameters(clean_up_lines(config_section))
+            self.validate_config(config)
+            return config
+        raise MissingSection.get_error(CONFIG_SECTION)
+
+    @staticmethod
+    def validate_config(config):
+        missing_config_parameters = {TEMPLATE, GLOBAL_PARAMETERS, REPEATER_PARAMETERS} - set(config.keys())
+        if missing_config_parameters:
+            missing_parameters = ', '.join(missing_config_parameters)
+            raise MissingParameter.get_error(missing_parameters, CONFIG_SECTION)
