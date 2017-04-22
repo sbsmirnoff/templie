@@ -8,7 +8,7 @@ from re import finditer
 from functools import partial
 from string import Template as StringTemplate
 
-from .utils import grouped, clean_up_lines, lines_to_csv, has_duplicates
+from .utils import grouped, clean_up_lines, lines_to_csv, has_duplicates, remove_backslashes
 from .exceptions import DslSyntaxError, ValidationError, MissingSection, WrongValue
 
 IDENTIFIER_REGEX = r'[_a-zA-Z][_a-zA-Z0-9]*'
@@ -72,11 +72,11 @@ class RepeaterParameters:
         raise DslSyntaxError.get_error(line)
 
     def __parse_values(self, line):
-        pattern = self.__compound_regex(r'\s*(?:([^,;" ]+)|"([^"]*)")\s*')
+        pattern = self.__compound_regex(r'\s*(?:([^,;" ]+)|"((?:\\.|[^"])*)")\s*')
         match = search(pattern, line)
         if match:
             return [
-                value if value else quoted_value
+                value if value else remove_backslashes(quoted_value)
                 for value, quoted_value in grouped(match.groups(), 2)
             ]
         raise DslSyntaxError.get_error(line)
@@ -94,10 +94,10 @@ def parameters(lines):
 
 
 def __get_key_value_pair(line):
-    match = search(r'^\s*({})\s*=\s*(?:([^" ]+)|"([^"]*)")\s*$'.format(IDENTIFIER_REGEX), line)
+    match = search(r'^\s*({})\s*=\s*(?:([^" ]+)|"((?:\\.|[^"])*)")\s*$'.format(IDENTIFIER_REGEX), line)
     if match:
         name, value, quoted_value = match.groups()
-        return name, value if value else quoted_value
+        return name, value if value else remove_backslashes(quoted_value)
     raise DslSyntaxError.get_error(line)
 
 

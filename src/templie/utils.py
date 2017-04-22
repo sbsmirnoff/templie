@@ -3,6 +3,7 @@ Templie utilities functions
 """
 
 from re import search
+from re import sub
 
 
 def grouped(iterable, n):
@@ -28,6 +29,10 @@ def clean_up_lines(lines):
 def strip_comments(line):
     match = search(r'^([^"#]*|(?:[^"#]*"[^"]*"[^"#]*)+)#.*$', line)
     return match.group(1) if match else line
+
+
+def remove_backslashes(line):
+    return sub(r'\\(.)', r'\1', line)
 
 
 def lines_to_csv(lines, number_of_columns):
