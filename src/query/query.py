@@ -102,7 +102,7 @@ class Query:
         self.collections.append(iterable)
         return Join(self, name)
 
-    def select(self):
+    def select(self, constructor=lambda x: x):
         result = [{self.name: item} for item in self.collections[0]]
         for joiner, collection in zip(self.joiners, self.collections[1:]):
             def join_function(x, y):
@@ -114,7 +114,7 @@ class Query:
                     join_function=join_function
             )
 
-        return [row for row in result if self.where_clause.test(row)]
+        return [constructor(row) for row in result if self.where_clause.test(row)]
 
 
 def join_collections(collections, providers, join_function=lambda x, y: (x, y)):
@@ -131,3 +131,16 @@ def join_collections(collections, providers, join_function=lambda x, y: (x, y)):
         return result
 
     raise ValueError('There must be exactly two collections and two providers')
+
+
+c1 = range(20)
+c2 = [1, 5, 5, 7, 15]
+c3 = range(200)
+
+query = Query('c1', c1).equi_join('c2', c2).on('c1', (lambda x: x, lambda x: x-1))
+query = query.equi_join('c3', c3).on('c1', (lambda x: 10 * x, lambda x: x))
+query = query.where(Atom(lambda row: row['c3'] < 100))
+res = query.select(lambda row: (row['c1'], row['c2'], row['c3']))
+print(list(res))
+for i in res:
+    print(i)
