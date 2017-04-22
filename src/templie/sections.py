@@ -2,14 +2,13 @@
 Section classes and functions
 """
 
+from re import finditer
 from re import search
 from re import split
-from re import finditer
-from functools import partial
 from string import Template as StringTemplate
 
-from .utils import grouped, clean_up_lines, lines_to_csv, has_duplicates, remove_backslashes
 from .exceptions import DslSyntaxError, ValidationError, MissingSection, WrongValue
+from .utils import grouped, clean_up_lines, lines_to_csv, has_duplicates, remove_backslashes
 
 IDENTIFIER_REGEX = r'[_a-zA-Z][_a-zA-Z0-9]*'
 CONFIG_SECTION = 'CONFIG'
@@ -46,8 +45,7 @@ class Template:
 class RepeaterParameters:
 
     def __init__(self, lines, flat):
-        cleaned_lines = list(clean_up_lines(lines))
-        header, body = cleaned_lines[0], cleaned_lines[1:]
+        header, *body = lines
         self.__number_of_columns = len(split(r'\s*,\s*|\s*;\s*|\s+', header))
         self.__lines = lines_to_csv(body, self.__number_of_columns) if flat else body
         self.__names = self.__parse_names(header)
@@ -89,7 +87,7 @@ class RepeaterParameters:
 
 
 def parameters(lines):
-    pairs = (__get_key_value_pair(line) for line in clean_up_lines(lines))
+    pairs = (__get_key_value_pair(line) for line in lines)
     return {name: value for name, value in pairs}
 
 
@@ -104,29 +102,39 @@ def __get_key_value_pair(line):
 class Sections:
 
     def __init__(self, section_lines, config_parameters):
+        self.__template_name = config_parameters[TEMPLATE]
+        self.__global_parameters_name = config_parameters[GLOBAL_PARAMETERS]
+        self.__repeater_parameters_name = config_parameters[REPEATER_PARAMETERS]
+        self.__flat = self.__is_flat_repeater(config_parameters)
         self.__section_lines = section_lines
-        self.__config_parameters = config_parameters
         self.__set_sections()
 
-    def __get_section_factories(self):
-        template_factory = partial(Template, name=self.__config_parameters[TEMPLATE])
-        repeater_factory = partial(RepeaterParameters, flat=self.__is_flat_repeater())
-        return template_factory, parameters, repeater_factory
-
-    def __get_section(self, section_name, factory):
-        lines = self.__section_lines.get(section_name)
-        if lines:
-            return factory(lines)
-        raise MissingSection.get_error(section_name)
-
     def __set_sections(self):
-        template_factory, parameters_factory, repeater_factory = self.__get_section_factories()
-        self.template = self.__get_section(self.__config_parameters[TEMPLATE], template_factory)
-        self.global_parameters = self.__get_section(self.__config_parameters[GLOBAL_PARAMETERS], parameters_factory)
-        self.repeater_parameters = self.__get_section(self.__config_parameters[REPEATER_PARAMETERS], repeater_factory)
+        self.template = self.__get_template()
+        self.global_parameters = self.__get_global_parameters_section()
+        self.repeater_parameters = self.__get_repeater_parameters_section()
 
-    def __is_flat_repeater(self):
-        flat = self.__config_parameters.get(FLAT_REPEATER, 'false')
+    def __get_template(self):
+        lines = self.__section_lines.get(self.__template_name)
+        if lines:
+            return Template(lines, self.__template_name)
+        raise MissingSection.get_error(self.__template_name)
+
+    def __get_global_parameters_section(self):
+        lines = self.__section_lines.get(self.__global_parameters_name)
+        if lines:
+            return parameters(clean_up_lines(lines))
+        raise MissingSection.get_error(self.__global_parameters_name)
+
+    def __get_repeater_parameters_section(self):
+        lines = self.__section_lines.get(self.__repeater_parameters_name)
+        if lines:
+            return RepeaterParameters(clean_up_lines(lines), self.__flat)
+        raise MissingSection.get_error(self.__repeater_parameters_name)
+
+    @staticmethod
+    def __is_flat_repeater(config_parameters):
+        flat = config_parameters.get(FLAT_REPEATER, 'false')
         if flat == 'false':
             return False
         elif flat == 'true':

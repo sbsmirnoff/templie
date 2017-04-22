@@ -2,6 +2,7 @@
 CONFIG section
 """
 
+from .utils import clean_up_lines
 from .exceptions import MissingSection, MissingParameter
 from .sections import parameters
 from .sections import CONFIG_SECTION, TEMPLATE, GLOBAL_PARAMETERS, REPEATER_PARAMETERS
@@ -10,7 +11,7 @@ from .sections import CONFIG_SECTION, TEMPLATE, GLOBAL_PARAMETERS, REPEATER_PARA
 def get_config_parameters(sections):
     config_section = sections.get(CONFIG_SECTION)
     if config_section:
-        config = parameters(config_section)
+        config = parameters(clean_up_lines(config_section))
         validate_config(config)
         return config
     raise MissingSection.get_error(CONFIG_SECTION)
