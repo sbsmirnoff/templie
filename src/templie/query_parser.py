@@ -8,14 +8,9 @@ from templie.exceptions import ParseException
 from templie.sections import IDENTIFIER_REGEX
 
 
-def parse_from(line):
-    match = search(r'^\s*from\s+({})\s*(.*)$'.format(IDENTIFIER_REGEX), line)
-    return match.groups() if match else ()
-
-
 def parse_join(line):
-    identifiers = [IDENTIFIER_REGEX] * 4
-    match = search(r'^\s*join\s+({})\s+on\s+({})\s*=\s*({}\.{})\s*(.*)$'.format(*identifiers), line)
+    identifiers = [IDENTIFIER_REGEX] * 5
+    match = search(r'^\s*join\s+({})\s+on\s+({}\.{})\s*=\s*({}\.{})\s*(.*)$'.format(*identifiers), line)
     if match:
         table, left_column, right_column, rest = match.groups()
         parsed = [(table, left_column, right_column)]
@@ -24,11 +19,14 @@ def parse_join(line):
 
 
 def parse(line):
-    parsed = parse_from(line)
-    if parsed:
-        return parsed[0], parse_join(parsed[1])
+    match = search(r'^\s*({})\s*(.*)$'.format(IDENTIFIER_REGEX), line)
+    if match:
+        table, rest = match.groups()
+        joins = parse_join(rest) if rest else []
+        return table, joins
+    raise ParseException
 
 
 if __name__ == '__main__':
-    ttt = parse('from aaa join bbb on x  = aaa.y join ccc on rr = aaa._hdhd_ii')
+    ttt = parse('aaa') # join bbb on bbb.x  = aaa.y join ccc on ccc.rr = aaa._hdhd_ii')
     print(ttt)
