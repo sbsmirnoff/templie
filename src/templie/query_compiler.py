@@ -33,13 +33,13 @@ class Join:
 
     def __init__(self, table, left_column, right_column):
         self.table = table
-        self.left_table, self.left_column = left_column.split('.')
-        self.right_table, self.right_column = right_column.split('.')
-        if self.left_table == table and self.right_table != table:
-            self.joined_table = self.right_table
+        left_table, self.left_column = left_column.split('.')
+        right_table, self.right_column = right_column.split('.')
+        if left_table == table and right_table != table:
+            self.joined_table = right_table
             self.joined_table_on_left = False
-        elif self.left_table != table and self.right_table == table:
-            self.joined_table = self.left_table
+        elif left_table != table and right_table == table:
+            self.joined_table = left_table
             self.joined_table_on_left = True
         else:
             raise ParseException
