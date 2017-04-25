@@ -5,9 +5,9 @@ Parser
 from re import search
 from itertools import groupby
 
-from templie.exceptions import ParseException
-from templie.sections import IDENTIFIER_REGEX
-from templie.query import Query
+from .exceptions import ParseException
+from .constants import IDENTIFIER_REGEX
+from .query import Query
 
 
 def parse_join(line):
@@ -96,6 +96,10 @@ class CompiledQuery:
             join_clause = query.equi_join(join.table, collection)
             query = join_clause.on(join.joined_table, self.providers_factory(join))
         return query.select(self.row_factory)
+
+
+def create_query(line):
+    return CompiledQuery(line, dict_providers, dict_row_constructor)
 
 
 if __name__ == '__main__':

@@ -9,8 +9,9 @@ from string import Template as StringTemplate
 
 from .exceptions import DslSyntaxError, ValidationError, MissingSection, WrongValue, MissingParameter
 from .utils import grouped, clean_up_lines, lines_to_csv, has_duplicates, remove_backslashes
+from .query_compiler import create_query
+from .constants import IDENTIFIER_REGEX
 
-IDENTIFIER_REGEX = r'[_a-zA-Z][_a-zA-Z0-9]*'
 CONFIG_SECTION = 'CONFIG'
 TEMPLATE = 'template'
 GLOBAL_PARAMETERS = 'global_parameters'
@@ -128,10 +129,17 @@ class Sections:
         raise MissingSection.get_error(self.__global_parameters_name)
 
     def __get_repeater_parameters_section(self):
-        lines = self.__section_lines.get(self.__repeater_parameters_name)
-        if lines:
-            return CsvParameters(clean_up_lines(lines), self.__flat)
-        raise MissingSection.get_error(self.__repeater_parameters_name)
+        query = create_query(self.__repeater_parameters_name)
+        section_lines = (self.__section_lines.get(name) for name in query.names)
+        csv_parameters = [
+            CsvParameters(clean_up_lines(lines), self.__flat)
+            for lines in section_lines
+        ]
+        return query.query(csv_parameters)
+        # lines = self.__section_lines.get(self.__repeater_parameters_name)
+        # if lines:
+        #     return CsvParameters(clean_up_lines(lines), self.__flat)
+        # raise MissingSection.get_error(self.__repeater_parameters_name)
 
     @staticmethod
     def __is_flat_repeater(config_parameters):
