@@ -42,7 +42,7 @@ class Template:
             raise ValidationError.get_error(msg.format(self.__name))
 
 
-class RepeaterParameters:
+class CsvParameters:
 
     def __init__(self, lines, flat):
         header, *body = lines
@@ -130,7 +130,7 @@ class Sections:
     def __get_repeater_parameters_section(self):
         lines = self.__section_lines.get(self.__repeater_parameters_name)
         if lines:
-            return RepeaterParameters(clean_up_lines(lines), self.__flat)
+            return CsvParameters(clean_up_lines(lines), self.__flat)
         raise MissingSection.get_error(self.__repeater_parameters_name)
 
     @staticmethod
