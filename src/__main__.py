@@ -12,8 +12,8 @@ def __get_args_parser():
         description='This templating DSL is called templie...',
         formatter_class=lambda prog: HelpFormatter(prog, max_help_position=40)
     )
-    parser.add_argument('-i', '--input', help='input file', required=True)
-    parser.add_argument('-o', '--output', help='output file', required=True)
+    parser.add_argument('input', help='input file')
+    parser.add_argument('-o', '--output', help='output file')
 
     return parser
 

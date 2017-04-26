@@ -31,7 +31,7 @@ Here is the actual input data:
 
 template = Template_A                                  # The name of a template section to be used
 global_parameters = PARAMETERS                         # The name of a global parameter section to be used
-repeater_parameters = REPEATER                         # The name of a CSV parameter section to be used
+repeater_parameters = "REPEATER join SECOND_REPEATER on SECOND_REPEATER.number = REPEATER.number" # The name of a CSV parameter section to be used
 
 [Template]                                             # This is a template section.
 This is a global parameter: ${global_parameter_1}
@@ -41,7 +41,7 @@ Comments do not work in the template section: #####
 
 [Template_A]                                           # This is another template section
 INSERT INTO EMPLOYEE (ID, FIRST_NAME, LAST_NAME, DEPARTMENT_ID)
-VALUES (SEQ_EMPLOYEE.nextval, '$first_name', '${last_name}', (SELECT ID FROM DEPARTMENT WHERE NAME = '$department'));
+VALUES (SEQ_EMPLOYEE.nextval, '$first_name', '${last_name}', (SELECT ID FROM DEPARTMENT WHERE NAME = '$dept'));
 
 [PARAMETERS]                                           # A global parameter section
 
@@ -60,3 +60,10 @@ number   first_name                   last_name        # List of parameter names
 3        "Jules Henri"                Poincaré
 4        Andrey                       Kolmogorov
 5        Alan                         Turing
+
+[SECOND_REPEATER]
+
+number, dept, first_name
+1, Sales, fff
+3, "Research and development", fff
+5, CEO, fff

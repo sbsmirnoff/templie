@@ -73,6 +73,7 @@ def dict_row_constructor(row):
         values = list(values)
         if len(values) == 1:
             result[key] = values[0][1]
+            result[values[0][0]] = values[0][1]
         else:
             result.update(dict(values))
     return result

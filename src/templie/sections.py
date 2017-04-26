@@ -5,7 +5,7 @@ Section classes and functions
 from re import finditer
 from re import search
 from re import split
-from string import Template as StringTemplate
+import string
 
 from .exceptions import DslSyntaxError, ValidationError, MissingSection, WrongValue, MissingParameter
 from .utils import grouped, clean_up_lines, lines_to_csv, has_duplicates, remove_backslashes
@@ -19,6 +19,10 @@ REPEATER_PARAMETERS = 'repeater_parameters'
 FLAT_REPEATER = 'flat_repeater'
 
 
+class StringTemplate(string.Template):
+    idpattern = r'[_a-zA-Z][_a-zA-Z0-9]*(?:\.[_a-zA-Z][_a-zA-Z0-9]*)?'
+
+
 class Template:
 
     def __init__(self, lines, name):
@@ -26,7 +30,8 @@ class Template:
         self.__name = name
         self.__string_template = StringTemplate(self.__content)
 
-    def get_names(self):
+    @property
+    def names(self):
         matches = [
             match.group(1) if match.group(1) else match.group(2)
             for match in finditer(r'\$(?:(%s)|{(%s)})' % (IDENTIFIER_REGEX, IDENTIFIER_REGEX), self.__content)
@@ -55,9 +60,6 @@ class CsvParameters:
         for line in self.__lines:
             yield self.__name_value_map(line)
 
-    def get_names(self):
-        return self.__names
-
     def __compound_regex(self, unit_regex):
         parts = [unit_regex] * self.__number_of_columns
         regex = r'[,; ]'.join(parts)
@@ -66,9 +68,12 @@ class CsvParameters:
     def __parse_names(self, line):
         pattern = self.__compound_regex(r'\s*({})\s*'.format(IDENTIFIER_REGEX))
         match = search(pattern, line)
-        if match:
-            return match.groups()
-        raise DslSyntaxError.get_error(line)
+        if not match:
+            raise DslSyntaxError.get_error(line)
+        names =  match.groups()
+        if has_duplicates(names):
+            raise ValidationError.get_error('Name conflicts in repeater parameter section')
+        return names
 
     def __parse_values(self, line):
         pattern = self.__compound_regex(r'\s*(?:([^,;" ]+)|"((?:\\.|[^"])*)")\s*')
@@ -136,10 +141,6 @@ class Sections:
             for lines in section_lines
         ]
         return query.query(csv_parameters)
-        # lines = self.__section_lines.get(self.__repeater_parameters_name)
-        # if lines:
-        #     return CsvParameters(clean_up_lines(lines), self.__flat)
-        # raise MissingSection.get_error(self.__repeater_parameters_name)
 
     @staticmethod
     def __is_flat_repeater(config_parameters):
@@ -152,18 +153,17 @@ class Sections:
             raise WrongValue.get_error(FLAT_REPEATER, 'either "true" or "false"')
 
     def validate(self):
+        if not self.repeater_parameters:
+            return
+
         self.template.validate()
 
-        if has_duplicates(self.repeater_parameters.get_names()):
-            raise ValidationError.get_error('Name conflicts in repeater parameter section')
-
+        repeater_parameters_names = self.repeater_parameters[0].keys()
         global_parameters_names = set(self.global_parameters.keys())
-        repeater_parameters_names = set(self.repeater_parameters.get_names())
-
         if global_parameters_names & repeater_parameters_names:
             raise ValidationError.get_error('Name conflicts in global and repeater parameter sections')
 
-        template_variables = set(self.template.get_names())
+        template_variables = set(self.template.names)
         undefined_template_variables = template_variables - (global_parameters_names | repeater_parameters_names)
         if undefined_template_variables:
             raise ValidationError.get_error(
