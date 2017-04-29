@@ -22,12 +22,11 @@ class Template:
 
     @property
     def names(self):
-        matches = [
+        return {
             match.group(1) if match.group(1) else match.group(2)
             for match
             in finditer(r'\$(?:(%s)|{(%s)})' % (COMPOUND_IDENTIFIER_REGEX, COMPOUND_IDENTIFIER_REGEX), self.__content)
-        ]
-        return iter(matches)
+        }
 
     def generate(self, params):
         return self.__string_template.substitute(params)

@@ -131,17 +131,3 @@ def join_collections(collections, providers, join_function=lambda x, y: (x, y)):
         return result
 
     raise ValueError('There must be exactly two collections and two providers')
-
-
-if __name__ == '__main__':
-    c1 = range(20)
-    c2 = [1, 5, 5, 7, 15]
-    c3 = range(200)
-
-    query = Query('c1', c1).equi_join('c2', c2).on('c1', (lambda x: x, lambda x: x-1))
-    query = query.equi_join('c3', c3).on('c1', (lambda x: 10 * x, lambda x: x))
-    query = query.where(Atom(lambda row: row['c3'] < 100))
-    res = query.select(lambda row: (row['c1'], row['c2'], row['c3']))
-    print(list(res))
-    for i in res:
-        print(i)

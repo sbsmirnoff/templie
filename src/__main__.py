@@ -2,6 +2,7 @@
 Templie's main function
 """
 
+import sys
 from argparse import ArgumentParser
 
 from templie import generate, TemplieException
@@ -20,9 +21,9 @@ def __main():
     try:
         generate(args.input, args.c)
     except IOError as error:
-        print(error)
+        print(error, file=sys.stderr)
     except TemplieException as e:
-        print(e.args[0])
+        print(e.args[0], file=sys.stderr)
 
 if __name__ == '__main__':
     __main()

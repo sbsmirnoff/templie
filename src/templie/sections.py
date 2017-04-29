@@ -20,16 +20,17 @@ class Sections:
     def __init__(self, section_lines, config_section):
         self.__section_lines = section_lines
         self.__config_section = config_section
-        config_parameters = self.get_config_parameters()
+        config_parameters = self.__get_config_parameters()
         self.__template_name = config_parameters[TEMPLATE]
         self.__global_parameters_name = config_parameters[GLOBAL_PARAMETERS]
         self.__repeater_parameters_name = config_parameters[REPEATER_PARAMETERS]
-        self.__set_sections()
 
-    def __set_sections(self):
-        self.template = self.__get_template()
-        self.global_parameters = self.__get_global_parameters_section()
-        self.repeater_parameters = self.__get_repeater_parameters_section()
+        self.__template = self.__get_template()
+        self.__global_parameters = self.__get_global_parameters_section()
+        self.__repeater_parameters = self.__get_repeater_parameters_section()
+
+    def nonempty(self):
+        return bool(self.__repeater_parameters)
 
     def __get_template(self):
         lines = self.__section_lines.get(self.__template_name)
@@ -52,33 +53,45 @@ class Sections:
         ]
         return query.query(csv_parameters)
 
+    def print(self):
+        for record in self.__repeater_parameters:
+            record.update(self.__global_parameters)
+            print(self.__template.generate(record), end='')
+
     def validate(self):
-        if not self.repeater_parameters:
-            return
+        self.__template.validate()
 
-        self.template.validate()
+        repeater_parameters_names = set(self.__repeater_parameters[0].keys())
+        prefixed_names = {name for name in repeater_parameters_names if name.find('.') > 0}
+        non_prefixed_names = repeater_parameters_names - prefixed_names
+        global_parameters_names = set(self.__global_parameters.keys())
 
-        repeater_parameters_names = self.repeater_parameters[0].keys()
-        global_parameters_names = set(self.global_parameters.keys())
-        if global_parameters_names & repeater_parameters_names:
+        if global_parameters_names & non_prefixed_names:
             raise ValidationError.get_error('Name conflicts in global and repeater parameter sections')
 
-        template_variables = set(self.template.names)
+        template_variables = self.__template.names
         undefined_template_variables = template_variables - (global_parameters_names | repeater_parameters_names)
-        if undefined_template_variables:
-            raise ValidationError.get_error(
-                'Undefined variables in the template: {}'.format(', '.join(undefined_template_variables))
-            )
+        for undefined_variable in undefined_template_variables:
+            duplicates = {name for name in repeater_parameters_names if name.endswith('.' + undefined_variable)}
+            if duplicates:
+                duplicates = {'"{}"'.format(duplicate) for duplicate in duplicates}
+                raise ValidationError.get_error(
+                    '"{}" in the template must be prefixed: {}'.format(undefined_variable, ' or '.join(duplicates))
+                )
+            else:
+                raise ValidationError.get_error(
+                    'Undefined variable in the template: "{}"'.format(undefined_variable)
+                )
 
-    def get_config_parameters(self):
+    def __get_config_parameters(self):
         config_section = self.__section_lines.get(self.__config_section)
         if config_section:
             config = parameters(clean_up_lines(config_section))
-            self.validate_config(config)
+            self.__validate_config(config)
             return config
         raise MissingSection.get_error(self.__config_section)
 
-    def validate_config(self, config):
+    def __validate_config(self, config):
         missing_config_parameters = {TEMPLATE, GLOBAL_PARAMETERS, REPEATER_PARAMETERS} - set(config.keys())
         if missing_config_parameters:
             missing_parameters = ', '.join(missing_config_parameters)

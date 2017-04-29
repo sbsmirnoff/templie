@@ -101,26 +101,3 @@ class CompiledQuery:
 
 def create_query(line):
     return CompiledQuery(line, dict_providers, dict_row_constructor)
-
-
-if __name__ == '__main__':
-    a = [
-        {'x': 1, 'xx': 20},
-        {'x': 10, 'xx': 20},
-        {'x': 100, 'xx': 200}
-    ]
-    b = [
-        {'y': 11, 'yy': 2},
-        {'y': 10, 'yy': 20},
-        {'y': 100, 'yy': 200}
-    ]
-    c = [
-        {'z': 11, 'yy': 2},
-        {'z': 10, 'yy': 20},
-        {'z': 100, 'yy': 200}
-    ]
-
-    ttt = CompiledQuery('a join b on a.x  = b.y join c on a.xx = c.yy', dict_providers, dict_row_constructor)
-    print(ttt.names)
-    for z in ttt.query([a, b, c]):
-        print(z)

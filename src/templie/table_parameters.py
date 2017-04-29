@@ -18,6 +18,7 @@ class TableParameters:
         self.__number_of_columns = len(split(r'\s*,\s*|\s*;\s*|\s+', header))
         self.__lines = lines_to_csv(body, self.__number_of_columns) if flat else body
         self.__names = self.__parse_names(header)
+        self.__values_pattern = self.__compound_regex(r'\s*(?:([^,;" ]+)|"((?:\\.|[^"])*)")\s*')
 
     def __iter__(self):
         for line in self.__lines:
@@ -38,14 +39,13 @@ class TableParameters:
         match = search(pattern, line)
         if not match:
             raise DslSyntaxError.get_error(line)
-        names =  match.groups()
+        names = match.groups()
         if has_duplicates(names):
             raise ValidationError.get_error('Name conflicts in repeater parameter section')
         return names
 
     def __parse_values(self, line):
-        pattern = self.__compound_regex(r'\s*(?:([^,;" ]+)|"((?:\\.|[^"])*)")\s*')
-        match = search(pattern, line)
+        match = search(self.__values_pattern, line)
         if match:
             return [
                 value if value else remove_backslashes(quoted_value)

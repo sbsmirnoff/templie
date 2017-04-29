@@ -4,7 +4,9 @@ Templie exceptions
 
 
 class TemplieException(Exception):
-    pass
+
+    def __init__(self, message):
+        super().__init__('ERROR: {}'.format(message))
 
 
 class DslSyntaxError(TemplieException):
