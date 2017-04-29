@@ -23,7 +23,7 @@ def has_duplicates(iterable):
 
 def clean_up_lines(lines):
     stripped = (strip_comments(line).strip() for line in lines)
-    return (line for line in stripped if line)
+    return [line for line in stripped if line]
 
 
 def strip_comments(line):

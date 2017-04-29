@@ -20,7 +20,7 @@ def split_into_sections(iterator):
         new_section = __get_section(line)
         if new_section:
             section = new_section
+            sections_lines[section] = []
         elif section:
-            lines = sections_lines.setdefault(section, [])
-            lines.append(line)
+            sections_lines[section].append(line)
     return sections_lines

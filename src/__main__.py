@@ -2,26 +2,23 @@
 Templie's main function
 """
 
-from argparse import ArgumentParser, HelpFormatter
+from argparse import ArgumentParser
 
 from templie import generate, TemplieException
 
 
-def __get_args_parser():
-    parser = ArgumentParser(
-        description='This templating DSL is called templie...',
-        formatter_class=lambda prog: HelpFormatter(prog, max_help_position=40)
-    )
+def _get_args_parser():
+    parser = ArgumentParser(description='This templating DSL is called templie...')
     parser.add_argument('input', help='input file')
-    parser.add_argument('-o', '--output', help='output file')
+    parser.add_argument('-c', nargs='+', help='config section', required=True)
 
     return parser
 
 
 def __main():
-    args = __get_args_parser().parse_args()
+    args = _get_args_parser().parse_args()
     try:
-        generate(args.input, args.output)
+        generate(args.input, args.c)
     except IOError as error:
         print(error)
     except TemplieException as e:
