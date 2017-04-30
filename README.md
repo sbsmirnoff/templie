@@ -27,6 +27,7 @@ This is the sort of task that Templie helps automate.
 
 ## Getting started
 
+To use Templie you need Python 3 installed on your machine.
 Go to the project's root directory and build an executable by running
 
 ```
@@ -36,7 +37,31 @@ Go to the project's root directory and build an executable by running
 The executable file is now in `out/` folder. Running Templie is as simple as
 
 ```
-./templie -i <input file> -o <output file>
+./templie <input file> -c <config section name> [<config section name> ...]
 ```
+
+The input file is a script that gets interpreted by Templie. The generated output is sent to `stdout`,
+while all error messages are sent to `stderr` (it is up to you to redirect those streams to where you want them).
+Config section names determine which parts of the script get interpreted.
+
+A Templie script is split into sections. Each section starts with the
+section's name inside square brackets (e.g. `[Template]`) and continues till
+the end of the file or the start of the next section, whichever comes first.
+The part of the input file that comes before the beginning of the first section is
+entirely ignored by Templie. You can use it for whatever purpose you wish.
+
+There are three types of sections in Templie scripts: parameter sections, CSV sections and templates.
+Parameter sections contain name value pairs, e.g
+
+```
+department = Sales
+company_name = "Hewlett Packard Enterprise"
+```
+
+Only alphanumeric and underscore characters are allowed in parameter's names (the first character must not be a digit).
+Parameter values that contain spaces have to be enclosed by double quotes.
+These parameter names can then be used inside template sections as placeholders for their values.
+
+The second type is a CSV section. Those contain (just as the name suggests)
 
 Check out an example templie script `example/example.templie`.
