@@ -5,7 +5,7 @@ Suppose you are given a CSV file with the names of new employees in your company
 
 ```
 first_name;  last_name
-Victor;      Lee
+Bruce;       Lee
 Sandra;      Dee
 ...
 ```
@@ -51,6 +51,9 @@ The part of the input file that comes before the beginning of the first section 
 entirely ignored by Templie. You can use it for whatever purpose you wish.
 
 There are three types of sections in Templie scripts: parameter sections, CSV sections and templates.
+
+### Parameter section
+
 Parameter sections contain name value pairs, e.g
 
 ```
@@ -62,6 +65,25 @@ Only alphanumeric and underscore characters are allowed in parameter's names (th
 Parameter values that contain spaces have to be enclosed by double quotes.
 These parameter names can then be used inside template sections as placeholders for their values.
 
-The second type is a CSV section. Those contain (just as the name suggests)
+### CSV section
+
+The second type is a CSV section. Those contain (just as the name suggests) comma (or semicolon or whitespace)
+separated values of repeater parameters, e.g.
+
+```
+first_name,                  last_name
+Leonhard                     Euler
+"Johann Carl Friedrich";     Gauss
+"Jules Henri"                Poincaré
+Andrey                       Kolmogorov
+Alan                         Turing
+
+```
+
+The first row must contain the names of the parameters, all the following rows then contain their values. Just as with
+the first section type, parameter names can be used inside template sections as placeholders for their values.
+
+### Template section
+
 
 Check out an example templie script `example/example.templie`.
