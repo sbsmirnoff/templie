@@ -3,6 +3,14 @@ Example of an input file:
 This part of the script (the part that comes before the first section) is
 entirely ignored by Templie. You can use it for whatever purpose you wish.
 
+Run it as follows:
+
+./templie example.templie -c CONFIG
+
+or
+
+./templie example.templie -c CONFIG CONFIG_A
+
 ----------------------------------------------------------------------------------
 
 Here is the actual input data:
