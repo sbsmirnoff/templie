@@ -40,8 +40,8 @@ The executable file is now in `out/` folder. Running Templie is as simple as
 ./templie <input file> -c <config section name> [<config section name> ...]
 ```
 
-The input file is a script that gets interpreted by Templie (you may want to check out an example of a Templie
-script: `example/example.templie`.). The generated output is sent to `stdout`,
+The input file is a script that gets interpreted by Templie (you may want to check out an example
+script: `example/example.templie`). The generated output is sent to `stdout`,
 while all error messages are sent to `stderr` (it is up to you to redirect those streams to where you want them).
 Config section names determine which parts of the script get interpreted.
 
@@ -51,7 +51,7 @@ the end of the file or the start of the next section, whichever comes first.
 The part of the input file that comes before the beginning of the first section is
 entirely ignored by Templie. You can use it for whatever purpose you wish.
 
-Section names are allowed to contain whitespace characters.
+Section names are not allowed to contain whitespace characters.
 
 There are three types of sections in Templie scripts: parameter sections, CSV sections and templates.
 
@@ -101,7 +101,7 @@ Curly braces are necessary when the placeholder is immediately followed by an al
 
 A config section is a special section of the first type that informs the Templie interpreter which sections in the script are
 to be used when you run it. Templie scripts can contain as many sections of each type as you wish, therefore you need to
-explicitly point out those you want to be interpreted. The following three parameters have to be included
+explicitly indicate those you want to be interpreted. The following three parameters have to be included
 in every config section:
 
 ```
@@ -110,13 +110,12 @@ global_parameters = some_parameter_section_name
 repeater_parameters = some_repeater_parameter_section_name
 ```
 
-There can be several config sections within a script. You tell Templie which one to use in the command line:
+There can be several config sections within a script. You tell Templie which one to use through the command line parameters:
 ```
 ./templie <input file> -c <config section name> [<config section name> ...]
 ```
 
-You need to include at least one config section. If you include more than one, then Templie will interpret all
-of them sequentially. E.g. running
+If you include more than one config section, Templie will interpret all of them sequentially. E.g. running
 
 ```
 ./templie some_script -c config_section_1 config_section_2
@@ -131,8 +130,8 @@ will produce the same result as running
 
 ### Comments
 
-`#` is used for comments. All the characters on a line starting with `#` are ignored by Templie. Template sections,
-however, cannot contain comments: `#` character has no special meaning inside a template.
+`#` character is used for comments: all characters on a line starting with `#` are ignored by Templie.
+Template sections, however, cannot have comments.
 
 ## Multiple parameter sections
 
