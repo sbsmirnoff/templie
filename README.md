@@ -134,6 +134,10 @@ will produce the same result as running
 `#` is used for comments. All the characters on a line starting with `#` are ignored by Templie. Template sections,
 however, cannot contain comments: `#` character has no special meaning inside a template.
 
+## Multiple parameter sections
+
+TODO
+
 ## Joining CSV sections
 
 TODO
