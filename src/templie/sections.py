@@ -2,6 +2,8 @@
 Sections class
 """
 
+from re import split
+
 from .exceptions import ValidationError, MissingSection, MissingParameter
 from .query_compiler import create_query
 from .template import Template
@@ -39,7 +41,10 @@ class Sections:
         raise MissingSection.get_error(self.__template_name)
 
     def __get_global_parameters_section(self):
-        lines = self.__section_lines.get(self.__global_parameters_name)
+        names = split(r'\s+', self.__global_parameters_name)
+        lines = []
+        for name in names:
+            lines.extend(self.__section_lines.get(name))
         if lines:
             return parameters(clean_up_lines(lines))
         raise MissingSection.get_error(self.__global_parameters_name)

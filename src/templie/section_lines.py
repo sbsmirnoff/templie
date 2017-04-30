@@ -9,7 +9,7 @@ from .utils import strip_comments
 
 def __get_section(line):
     line_without_comment = strip_comments(line)
-    match = search(r'^\s*\[(.+)\]\s*$', line_without_comment.strip())
+    match = search(r'^\s*\[(\S+)\]\s*$', line_without_comment.strip())
     return match.group(1) if match else ''
 
 

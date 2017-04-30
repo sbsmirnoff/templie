@@ -51,6 +51,8 @@ the end of the file or the start of the next section, whichever comes first.
 The part of the input file that comes before the beginning of the first section is
 entirely ignored by Templie. You can use it for whatever purpose you wish.
 
+Section names are allowed to contain whitespace characters.
+
 There are three types of sections in Templie scripts: parameter sections, CSV sections and templates.
 
 ### Parameter sections
