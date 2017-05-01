@@ -2,7 +2,7 @@
 Parser
 """
 
-from re import search
+from re import search, split
 from itertools import groupby
 
 from .exceptions import ParseException
@@ -11,13 +11,20 @@ from .query import Query
 
 
 def parse_join(line):
-    identifiers = [IDENTIFIER_REGEX] * 5
-    match = search(r'^\s*join\s+({})\s+on\s+({}\.{})\s*=\s*({}\.{})\s*(.*)$'.format(*identifiers), line)
+    identifiers = [IDENTIFIER_REGEX] * 9
+    match = search(
+        r'^\s*join\s+({})\s+on\s+({}\.{}(?:,{}\.{})*)\s*=\s*({}\.{}(?:,{}\.{})*)\s*(.*)$'.format(*identifiers),
+        line
+    )
     if match:
         table, left_column, right_column, rest = match.groups()
         parsed = [Join(table, left_column, right_column)]
         return parsed + parse_join(rest) if rest else parsed
     raise ParseException
+
+
+def parse_column_tuple(columns):
+    return split(r'\s*,\s*', columns)
 
 
 def parse(line):
@@ -31,29 +38,31 @@ def parse(line):
 
 class Join:
 
-    def __init__(self, table, left_column, right_column):
-        self.table = table
-        left_table, self.left_column = left_column.split('.')
-        right_table, self.right_column = right_column.split('.')
-        if left_table == table and right_table != table:
-            self.joined_table = right_table
-            self.joined_table_on_left = False
-        elif left_table != table and right_table == table:
-            self.joined_table = left_table
-            self.joined_table_on_left = True
-        else:
+    def __init__(self, table, left_columns, right_columns):
+        if len(left_columns) != len(right_columns):
             raise ParseException
+        self.table = table
+        self.left_columns = []
+        self.right_columns = []
+        for left, right in zip(left_columns, right_columns):
+            left_table, left_column = left.split('.')
+            right_table, right_column = right.split('.')
+            if left_table == table and right_table != table:
+                self.left_columns.append(right_column)
+                self.right_columns.append(left_column)
+            elif left_table != table and right_table == table:
+                self.left_columns.append(left_column)
+                self.right_columns.append(right_column)
+            else:
+                raise ParseException
 
 
 def dict_providers(join):
 
-    def left_provider(table):
-        return table[join.left_column if join.joined_table_on_left else join.right_column]
+    def provider(columns):
+        return lambda table: tuple(table[column] for column in columns)
 
-    def right_provider(table):
-        return table[join.right_column if join.joined_table_on_left else join.left_column]
-
-    return left_provider, right_provider
+    return provider(join.left_columns), provider(join.right_columns)
 
 
 def dict_row_constructor(row):
