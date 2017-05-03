@@ -4,7 +4,7 @@ Sections class
 
 from re import split
 
-from .exceptions import ValidationError, MissingSection, MissingParameter
+from .exceptions import ValidationError, MissingParameter
 from .query_compiler import create_query
 from .template import Template
 from .table_parameters import TableParameters
@@ -35,23 +35,19 @@ class Sections:
         return bool(self.__repeater_parameters)
 
     def __get_template(self):
-        lines = self.__section_lines.get(self.__template_name)
-        if lines:
-            return Template(lines, self.__template_name)
-        raise MissingSection.get_error(self.__template_name)
+        lines = self.__section_lines(self.__template_name)
+        return Template(lines, self.__template_name)
 
     def __get_global_parameters_section(self):
         names = split(r'\s+', self.__global_parameters_name)
         lines = []
         for name in names:
-            lines.extend(self.__section_lines.get(name))
-        if lines:
-            return parameters(clean_up_lines(lines))
-        raise MissingSection.get_error(self.__global_parameters_name)
+            lines.extend(self.__section_lines(name))
+        return parameters(clean_up_lines(lines))
 
     def __get_repeater_parameters_section(self):
         query = create_query(self.__repeater_parameters_name)
-        section_lines = (self.__section_lines.get(name) for name in query.names)
+        section_lines = (self.__section_lines(name) for name in query.names)
         csv_parameters = [
             TableParameters(clean_up_lines(lines))
             for lines in section_lines
@@ -89,12 +85,10 @@ class Sections:
                 )
 
     def __get_config_parameters(self):
-        config_section = self.__section_lines.get(self.__config_section)
-        if config_section:
-            config = parameters(clean_up_lines(config_section))
-            self.__validate_config(config)
-            return config
-        raise MissingSection.get_error(self.__config_section)
+        config_section = self.__section_lines(self.__config_section)
+        config = parameters(clean_up_lines(config_section))
+        self.__validate_config(config)
+        return config
 
     def __validate_config(self, config):
         missing_config_parameters = {TEMPLATE, GLOBAL_PARAMETERS, REPEATER_PARAMETERS} - set(config.keys())

@@ -68,7 +68,7 @@ class Not(Where):
 class Joiner:
 
     def __init__(self, names, providers):
-        self.left_name, self.right_name = names
+        self.left_names, self.right_name = names
         self.left_provider, self.right_provider = providers
 
 
@@ -78,8 +78,8 @@ class Join:
         self.name = name
         self.query = query
 
-    def on(self, name, providers):
-        joiner = Joiner((name, self.name), providers)
+    def on(self, names, providers):
+        joiner = Joiner((names, self.name), providers)
         self.query.joiners.append(joiner)
         return self.query
 
@@ -104,13 +104,19 @@ class Query:
 
     def select(self, constructor=lambda x: x):
         result = [{self.name: item} for item in self.collections[0]]
+
         for joiner, collection in zip(self.joiners, self.collections[1:]):
+
             def join_function(x, y):
                 x[joiner.right_name] = y
                 return x
+
+            def left_provider(x):
+                return joiner.left_provider([x[left_name] for left_name in joiner.left_names])
+
             result = join_collections(
                     collections=(result, collection),
-                    providers=(lambda x: joiner.left_provider(x[joiner.left_name]), joiner.right_provider),
+                    providers=(left_provider, joiner.right_provider),
                     join_function=join_function
             )
 

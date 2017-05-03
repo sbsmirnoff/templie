@@ -5,25 +5,25 @@ Parser
 from re import search, split
 from itertools import groupby
 
-from .exceptions import ParseException
+from .exceptions import ParseException, DslSyntaxError
 from .constants import IDENTIFIER_REGEX
 from .query import Query
 
 
-def parse_join(line):
+def _parse_join(line):
     identifiers = [IDENTIFIER_REGEX] * 9
     match = search(
-        r'^\s*join\s+({})\s+on\s+({}\.{}(?:,{}\.{})*)\s*=\s*({}\.{}(?:,{}\.{})*)\s*(.*)$'.format(*identifiers),
+        r'^\s*join\s+({})\s+on\s+({}\.{}(?:\s*,\s*{}\.{})*)\s*=\s*({}\.{}(?:\s*,\s*{}\.{})*)\s*(.*)$'.format(*identifiers),
         line
     )
     if match:
-        table, left_column, right_column, rest = match.groups()
-        parsed = [Join(table, left_column, right_column)]
-        return parsed + parse_join(rest) if rest else parsed
+        table, left_columns, right_columns, rest = match.groups()
+        parsed = [_Join(table, _parse_column_tuple(left_columns), _parse_column_tuple(right_columns))]
+        return parsed + _parse_join(rest) if rest else parsed
     raise ParseException
 
 
-def parse_column_tuple(columns):
+def _parse_column_tuple(columns):
     return split(r'\s*,\s*', columns)
 
 
@@ -31,12 +31,12 @@ def parse(line):
     match = search(r'^\s*({})\s*(.*)$'.format(IDENTIFIER_REGEX), line)
     if match:
         table, rest = match.groups()
-        joins = parse_join(rest) if rest else []
+        joins = _parse_join(rest) if rest else []
         return table, joins
     raise ParseException
 
 
-class Join:
+class _Join:
 
     def __init__(self, table, left_columns, right_columns):
         if len(left_columns) != len(right_columns):
@@ -44,39 +44,47 @@ class Join:
         self.table = table
         self.left_columns = []
         self.right_columns = []
+        self.joined_tables = []
         for left, right in zip(left_columns, right_columns):
             left_table, left_column = left.split('.')
             right_table, right_column = right.split('.')
             if left_table == table and right_table != table:
                 self.left_columns.append(right_column)
                 self.right_columns.append(left_column)
+                self.joined_tables.append(right_table)
             elif left_table != table and right_table == table:
                 self.left_columns.append(left_column)
                 self.right_columns.append(right_column)
+                self.joined_tables.append(left_table)
             else:
                 raise ParseException
 
 
 def dict_providers(join):
 
-    def provider(columns):
+    def left_provider(columns):
+        return lambda tables: tuple(table[column] for table, column in zip(tables, columns))
+
+    def right_provider(columns):
         return lambda table: tuple(table[column] for column in columns)
 
-    return provider(join.left_columns), provider(join.right_columns)
+    return left_provider(join.left_columns), right_provider(join.right_columns)
+
+
+def _group_name_value_pairs(pairs):
+    def key(pair):
+        return pair[0].split('.')[1]
+    pairs.sort(key=key)
+    return groupby(pairs, key=key)
 
 
 def dict_row_constructor(row):
     pairs = [
-        ('%s.%s' % (table, column_name), value)
+        ('{}.{}'.format(table, column_name), value)
         for table, columns in row.items()
         for column_name, value in columns.items()
     ]
-
-    def key(pair):
-        return pair[0].split('.')[1]
-    pairs.sort(key=key)
-    grouped = groupby(pairs, key=key)
-
+    grouped = _group_name_value_pairs(pairs)
     result = {}
     for key, values in grouped:
         values = list(values)
@@ -104,9 +112,12 @@ class CompiledQuery:
         query = Query(name=self.table, iterable=first)
         for join, collection in zip(self.joins, rest):
             join_clause = query.equi_join(join.table, collection)
-            query = join_clause.on(join.joined_table, self.providers_factory(join))
+            query = join_clause.on(join.joined_tables, self.providers_factory(join))
         return query.select(self.row_factory)
 
 
 def create_query(line):
-    return CompiledQuery(line, dict_providers, dict_row_constructor)
+    try:
+        return CompiledQuery(line, dict_providers, dict_row_constructor)
+    except ParseException:
+        raise DslSyntaxError.get_error(line)

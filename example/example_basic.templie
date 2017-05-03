@@ -1,0 +1,34 @@
+This part of the script (the part that comes before the first section) is
+entirely ignored by Templie. You can use it for whatever purpose you wish.
+
+Run it as follows:
+
+./templie example_basic.templie -c CONFIG
+
+This is a very simple example that demonstrates the basic functionality of Templie.
+
+[CONFIG]                                               # CONFIG section
+
+template            = EXAMPLE_TEMPLATE                 # The name of a template section to be used
+global_parameters   = PARAMETERS                       # The name of a global parameter section to be used
+repeater_parameters = REPEATER                         # The name of a CSV parameter section to be used
+
+[EXAMPLE_TEMPLATE]
+My first name is $first_name, my last name is ${last_name}. We all work at $company.
+Our CEO is $ceo_first_name ${ceo_last_name}.
+
+[PARAMETERS]                                           # Global parameters
+
+company        = "Hewlett Packard Enterprise"
+ceo_first_name = Meg
+ceo_last_name  = Whitman
+
+[REPEATER]                                             # Repeater parameters
+
+first_name, last_name                                  # Repeater parameters' names
+
+Leonhard, Euler
+"Johann Carl Friedrich", Gauss
+"Jules Henri", Poincaré
+Andrey, Kolmogorov
+Alan, Turing

@@ -25,7 +25,7 @@ repeater_parameters = REPEATER                  # The name of a CSV parameter se
 
 template            = Template_A
 global_parameters   = PARAMETERS
-repeater_parameters = "REPEATER join SECOND_REPEATER on SECOND_REPEATER.number = REPEATER.number"
+repeater_parameters = "REPEATER join SECOND_REPEATER on SECOND_REPEATER.number, REPEATER.dept = REPEATER.number, SECOND_REPEATER.dept"
 
 [Template]                                      # This is a template section.
 This is a global parameter: ${global_parameter_1}
@@ -35,7 +35,7 @@ Comments do not work in the template section: #####
 
 [Template_A]                                    # This is another template section
 INSERT INTO EMPLOYEE (ID, FIRST_NAME, LAST_NAME, DEPARTMENT_ID)
-VALUES (SEQ_EMPLOYEE.nextval, '$REPEATER.first_name', '${last_name}', (SELECT ID FROM DEPARTMENT WHERE NAME = '$dept'));
+VALUES (SEQ_EMPLOYEE.nextval, '$REPEATER.first_name', '${last_name}', (SELECT ID FROM DEPARTMENT WHERE NAME = '$REPEATER.dept'));
 
 [PARAMETERS]                                    # A global parameter section
 
@@ -45,13 +45,13 @@ department = Sales
 
 [REPEATER]                                      # A repeater (CSV) parameter section
 
-number   first_name                 last_name   # List of parameter names
+number   first_name                 last_name, dept   # List of parameter names
 
-1        Leonhard                   "Euler (great and powerful)"
-2        "Johann Carl Friedrich"    Gauss
-3        "Jules Henri"              Poincaré
-4        Andrey                     Kolmogorov
-5        Alan                       Turing
+1        Leonhard                   "Euler (great and powerful)"  Sales
+2        "Johann Carl Friedrich"    Gauss Sales
+3        "Jules Henri"              Poincaré Sales
+4        Andrey                     Kolmogorov Sales
+5        Alan                       Turing CEO
 
 [SECOND_REPEATER]
 number, dept
